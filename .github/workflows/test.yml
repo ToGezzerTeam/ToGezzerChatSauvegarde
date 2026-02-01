@@ -26,9 +26,13 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-            -Dsonar.java.binaries=build/classes/java/main
-            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+              -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+              -Dsonar.sources=src/main/java
+              -Dsonar.tests=src/test/java
+              -Dsonar.java.binaries=build/classes/java/main
+              -Dsonar.java.test.binaries=build/classes/java/test
+              -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+
       - name: Check SonarCloud Quality Gate
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
