@@ -7,6 +7,7 @@ import ch.qos.logback.core.read.ListAppender;
 import com.togezzer.chat_sauvegarde.dto.ContentDTO;
 import com.togezzer.chat_sauvegarde.dto.MessageDTO;
 import com.togezzer.chat_sauvegarde.enums.ContentType;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,8 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -75,21 +78,45 @@ public class MessageConsumerTest {
 
     @Test
     void testErreurMongo_relanceException() {
-        doThrow(new RuntimeException("Erreur Mongo")).when(messageService).saveMessage(message);
+        doThrow(new DataIntegrityViolationException("Erreur Mongo")).when(messageService).saveMessage(message);
 
-        assertThrows(RuntimeException.class, () -> consumer.consumeMessages(message));
+        assertThrows(DataIntegrityViolationException.class, () -> consumer.consumeMessages(message));
 
         verify(messageService).saveMessage(message);
     }
 
     @Test
-    void testLogErreurMongo() {
-        doThrow(new RuntimeException("Erreur Mongo")).when(messageService).saveMessage(message);
+    void testConstraintViolation_neRelancePasException() {
+        doThrow(new ConstraintViolationException("Champ obligatoire manquant", null))
+                .when(messageService).saveMessage(message);
 
-        assertThrows(RuntimeException.class, () -> consumer.consumeMessages(message));
+        assertDoesNotThrow(() -> consumer.consumeMessages(message));
+
+        verify(messageService).saveMessage(message);
+    }
+
+
+    @Test
+    void testLogErreurMongo() {
+        doThrow(new DataIntegrityViolationException("Erreur Mongo"))
+                .when(messageService).saveMessage(message);
+
+        assertThrows(DataIntegrityViolationException.class, () -> consumer.consumeMessages(message));
 
         assertThat(listAppender.list)
                 .anyMatch(log -> log.getLevel() == Level.ERROR
                         && log.getMessage().contains("Erreur Mongo lors de la sauvegarde"));
+    }
+
+    @Test
+    void testConstraintViolation_logErreur() {
+        doThrow(new ConstraintViolationException("Champ obligatoire manquant", null))
+                .when(messageService).saveMessage(message);
+
+        consumer.consumeMessages(message);
+
+        assertThat(listAppender.list)
+                .anyMatch(log -> log.getLevel() == Level.ERROR
+                        && log.getMessage().contains("Données invalides"));
     }
 }
