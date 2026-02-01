@@ -19,21 +19,18 @@ public class RabbitMQConfig implements RabbitListenerConfigurer {
         this.validator = validator;
     }
 
-    // Convertisseur pour RabbitMQ (Requis pour l'infrastructure)
     @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    // Création de la factory qui va résoudre les arguments de ta méthode (@Payload)
     @Bean
     public MessageHandlerMethodFactory messageHandlerMethodFactory() {
-        DefaultMessageHandlerMethodFactory factory = new DefaultMessageHandlerMethodFactory();
+        final var factory = new DefaultMessageHandlerMethodFactory();
         factory.setValidator(validator);
 
-        // On crée un convertisseur Jackson pour le mapping des méthodes
         MappingJackson2MessageConverter jacksonConverter = new MappingJackson2MessageConverter();
-        // On demande à la factory d'utiliser ce convertisseur
+
         factory.setMessageConverter(jacksonConverter);
 
         return factory;
@@ -41,7 +38,6 @@ public class RabbitMQConfig implements RabbitListenerConfigurer {
 
     @Override
     public void configureRabbitListeners(RabbitListenerEndpointRegistrar registrar) {
-        // On lie la factory configurée au registrar de Rabbit
         registrar.setMessageHandlerMethodFactory(messageHandlerMethodFactory());
     }
 }

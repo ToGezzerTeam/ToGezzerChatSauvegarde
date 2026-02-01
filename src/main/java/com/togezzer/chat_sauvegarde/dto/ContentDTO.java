@@ -1,6 +1,8 @@
 package com.togezzer.chat_sauvegarde.dto;
 
+import com.togezzer.chat_sauvegarde.enums.ContentType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,8 +10,8 @@ import lombok.Setter;
 @Setter
 public class ContentDTO {
 
-    @NotBlank
-    private String type;
+    @NotNull
+    private ContentType type;
 
     @NotBlank
     private String value;

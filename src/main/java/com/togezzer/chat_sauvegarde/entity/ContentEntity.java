@@ -1,5 +1,6 @@
 package com.togezzer.chat_sauvegarde.entity;
 
+import com.togezzer.chat_sauvegarde.enums.ContentType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +8,6 @@ import lombok.Setter;
 @Setter
 
 public class ContentEntity {
-    private String type;
+    private ContentType type;
     private String value;
 }
