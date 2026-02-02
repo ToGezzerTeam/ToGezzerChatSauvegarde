@@ -1,0 +1,20 @@
+meta {
+  name: Doit retourner une liste d'element quand on transmet une date
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/api/messages/office-chat-123?date=2026-02-02T21:15:00Z
+  body: none
+  auth: inherit
+}
+
+params:query {
+  date: 2026-02-02T21:15:00Z
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
