@@ -1,5 +1,6 @@
 package com.togezzer.chat_sauvegarde.errorHandler;
 
+import com.togezzer.chat_sauvegarde.exception.MessageUuidNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +23,14 @@ public class GlobalErrorHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<?> handlerConstraintViolation(ConstraintViolationException ex){
         Map<String, Object> response = new LinkedHashMap<>();
+
         response.put("error", "Validation Failed");
         String details = ex.getConstraintViolations().stream()
                 .map(v -> v.getPropertyPath().toString().substring(v.getPropertyPath().toString().lastIndexOf('.') + 1)
                         + ": " + v.getMessage())
                 .collect(Collectors.joining(", "));
-
         response.put("message", details);
+
         return ResponseEntity.badRequest().body(response);
     }
 
@@ -36,19 +38,43 @@ public class GlobalErrorHandler {
     public ResponseEntity<?> handlerTypeMismatch(MethodArgumentTypeMismatchException ex){
         Map<String, String> response = new LinkedHashMap<>();
 
-        response.put("error", "Format invalide");
-        response.put("message", String.format("valeur invalide '%s' pour le parametre '%s'",
+        response.put("error", "Invalid Format");
+        response.put("message", String.format("Invalid value '%s' for parameter '%s'",
                 ex.getValue(), ex.getName()));
+
         return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<?> handleDatabaseError(DataAccessException ex) {
         log.error("Erreur MongoDB : ", ex);
-        Map<String, Object> response = new LinkedHashMap<>()
-                ;
+
+        Map<String, Object> response = new LinkedHashMap<>();
+
         response.put("error", "Internal Server Error");
-        response.put("message", "Une erreur technique est survenue. Veuillez réessayer plus tard.");
+        response.put("message", "A technical error occurred. Please try again later.");
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(MessageUuidNotFoundException.class)
+    public ResponseEntity<?> handleMessageUuidNotFound(MessageUuidNotFoundException messageUuidNotFoundException){
+        Map<String, String> response = new LinkedHashMap<>();
+
+        response.put("error","Message Not Found");
+        response.put("message",messageUuidNotFoundException.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
+        log.error("Unexpected error occurred : ", ex);
+
+        Map<String, String> response = new LinkedHashMap<>();
+
+        response.put("error", "Internal Server Error");
+        response.put("message", "An unexpected error occurred");
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

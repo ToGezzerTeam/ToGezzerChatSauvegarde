@@ -3,6 +3,7 @@ package com.togezzer.chat_sauvegarde.service;
 import com.togezzer.chat_sauvegarde.dto.MessageDTO;
 import com.togezzer.chat_sauvegarde.dto.MessagesPageResponseDto;
 import com.togezzer.chat_sauvegarde.entity.MessageEntity;
+import com.togezzer.chat_sauvegarde.exception.MessageUuidNotFoundException;
 import com.togezzer.chat_sauvegarde.mapper.MessageMapper;
 import com.togezzer.chat_sauvegarde.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -30,11 +30,21 @@ public class MessageService {
         messageRepository.save(messageEntity);
     }
 
-    public MessagesPageResponseDto getMessages(String roomId, Instant date, int pageSize){
-        log.debug("Fetching messages for room: {}, from date: {}, pageSize: {}", roomId, date, pageSize);
+    public MessagesPageResponseDto getMessages(String roomId, String messageUuid, int pageSize){
+        log.debug("Fetching messages for room: {}, messageUuid: {}, pageSize: {}", roomId, messageUuid != null ? messageUuid : "initial load", pageSize);
+
+        final Slice<MessageEntity> messageEntities;
 
         Pageable pageable = PageRequest.of(0, pageSize, Sort.by(MessageEntity.Fields.createdAt).descending());
-        Slice<MessageEntity> messageEntities = messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId,date, pageable);
+
+        if(messageUuid != null && !messageUuid.isEmpty()){
+            MessageEntity referenceMessage = messageRepository.findCreatedAtByUuidAndRoomId(messageUuid,roomId)
+                    .orElseThrow(() -> new MessageUuidNotFoundException(messageUuid,roomId));
+
+            messageEntities = messageRepository.findMessagesBeforeUuid(roomId,referenceMessage.getCreatedAt(),messageUuid, pageable);
+        }else{
+            messageEntities = messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable);
+        }
 
         log.debug("Found {} messages in room {}", messageEntities.getContent().size(), roomId);
 

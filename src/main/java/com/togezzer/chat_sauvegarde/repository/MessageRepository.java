@@ -9,9 +9,19 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Repository
 public interface MessageRepository extends MongoRepository<MessageEntity, String> {
-    @Query("{ 'roomId': ?0, 'createdAt': { $lt: ?1 } }")
-    Slice<MessageEntity> findByRoomIdOrderByCreatedAtDesc(String roomId, Instant createdAt, Pageable pageable);
+
+    Slice<MessageEntity> findByRoomIdOrderByCreatedAtDesc(String roomId, Pageable pageable);
+
+    @Query("{ 'roomId': ?0, $or: [ " +
+            "  { 'createdAt': { $lt: ?1 } }, " +
+            "  { 'createdAt': ?1, 'uuid': { $lt: ?2 } } " +
+            "] }")
+    Slice<MessageEntity> findMessagesBeforeUuid(String roomId, Instant createdAt, String uuid, Pageable pageable);
+
+    @Query(value = "{ 'uuid': ?0, 'roomId': ?1 }", fields = "{ 'createdAt': 1 }")
+    Optional<MessageEntity> findCreatedAtByUuidAndRoomId(String uuid,String roomId);
 }

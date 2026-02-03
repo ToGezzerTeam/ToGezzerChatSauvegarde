@@ -13,6 +13,8 @@ import java.time.Instant;
 
 public class MessageDTO {
 
+    private String uuid;
+
     @NotBlank
     private String roomId;
 
