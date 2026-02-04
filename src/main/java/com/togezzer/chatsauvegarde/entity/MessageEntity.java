@@ -1,5 +1,6 @@
 package com.togezzer.chatsauvegarde.entity;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
@@ -10,6 +11,7 @@ import java.time.Instant;
 
 @Getter
 @Setter
+@Builder
 @FieldNameConstants(onlyExplicitlyIncluded = true)
 @Document(collection = "messages")
 public class MessageEntity {

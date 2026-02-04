@@ -44,14 +44,16 @@ public class MessageConsumerTest {
         logger.addAppender(listAppender);
         logger.setLevel(Level.DEBUG);
 
-        ContentDTO content = new ContentDTO();
-        content.setType(ContentType.TEXT);
-        content.setValue("Blablabla");
+        ContentDTO content = ContentDTO.builder()
+                .type(ContentType.TEXT)
+                .value("Blablabla")
+                .build();
 
-        message = new MessageDTO();
-        message.setContent(content);
-        message.setAuthorId("uuid1");
-        message.setRoomId("2L");
+        message = MessageDTO.builder()
+                .content(content)
+                .authorId("uuid1")
+                .roomId("2")
+                .build();
     }
 
     @Test
