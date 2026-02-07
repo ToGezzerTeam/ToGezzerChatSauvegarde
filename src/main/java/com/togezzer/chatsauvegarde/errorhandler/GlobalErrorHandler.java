@@ -1,4 +1,4 @@
-package com.togezzer.chatsauvegarde.errorHandler;
+package com.togezzer.chatsauvegarde.errorhandler;
 
 import com.togezzer.chatsauvegarde.enums.ErrorCode;
 import com.togezzer.chatsauvegarde.enums.ErrorResponseField;
