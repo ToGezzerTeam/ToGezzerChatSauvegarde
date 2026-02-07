@@ -1,6 +1,6 @@
-package com.togezzer.chat_sauvegarde.service;
+package com.togezzer.chatsauvegarde.service;
 
-import com.togezzer.chat_sauvegarde.dto.MessageDTO;
+import com.togezzer.chatsauvegarde.dto.MessageDTO;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

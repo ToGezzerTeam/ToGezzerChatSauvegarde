@@ -1,4 +1,4 @@
-package com.togezzer.chat_sauvegarde.enums;
+package com.togezzer.chatsauvegarde.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

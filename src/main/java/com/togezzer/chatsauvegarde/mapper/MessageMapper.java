@@ -1,7 +1,7 @@
-package com.togezzer.chat_sauvegarde.mapper;
+package com.togezzer.chatsauvegarde.mapper;
 
-import com.togezzer.chat_sauvegarde.dto.MessageDTO;
-import com.togezzer.chat_sauvegarde.entity.MessageEntity;
+import com.togezzer.chatsauvegarde.dto.MessageDTO;
+import com.togezzer.chatsauvegarde.entity.MessageEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

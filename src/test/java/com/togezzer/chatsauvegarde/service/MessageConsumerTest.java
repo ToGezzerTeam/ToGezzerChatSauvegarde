@@ -1,12 +1,12 @@
-package com.togezzer.chat_sauvegarde.service;
+package com.togezzer.chatsauvegarde.service;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.togezzer.chat_sauvegarde.dto.ContentDTO;
-import com.togezzer.chat_sauvegarde.dto.MessageDTO;
-import com.togezzer.chat_sauvegarde.enums.ContentType;
+import com.togezzer.chatsauvegarde.dto.ContentDTO;
+import com.togezzer.chatsauvegarde.dto.MessageDTO;
+import com.togezzer.chatsauvegarde.enums.ContentType;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,14 +44,16 @@ public class MessageConsumerTest {
         logger.addAppender(listAppender);
         logger.setLevel(Level.DEBUG);
 
-        ContentDTO content = new ContentDTO();
-        content.setType(ContentType.TEXT);
-        content.setValue("Blablabla");
+        ContentDTO content = ContentDTO.builder()
+                .type(ContentType.TEXT)
+                .value("Blablabla")
+                .build();
 
-        message = new MessageDTO();
-        message.setContent(content);
-        message.setAuthorId("uuid1");
-        message.setRoomId("2L");
+        message = MessageDTO.builder()
+                .content(content)
+                .authorId("uuid1")
+                .roomId("2")
+                .build();
     }
 
     @Test

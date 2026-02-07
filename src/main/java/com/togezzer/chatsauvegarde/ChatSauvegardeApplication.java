@@ -1,4 +1,4 @@
-package com.togezzer.chat_sauvegarde;
+package com.togezzer.chatsauvegarde;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
