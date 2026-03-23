@@ -3,6 +3,7 @@ package com.togezzer.chatsauvegarde.config;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +34,8 @@ public class RetryConfig {
                 Map.of(
                         DataAccessException.class, true,
                         MessageConversionException.class, false,
-                        ConstraintViolationException.class, false
+                        ConstraintViolationException.class, false,
+                        ListenerExecutionFailedException.class, false
                 ),
                 true
         );

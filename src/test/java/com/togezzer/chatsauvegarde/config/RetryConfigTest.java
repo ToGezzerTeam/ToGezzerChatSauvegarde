@@ -2,6 +2,7 @@ package com.togezzer.chatsauvegarde.config;
 
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.retry.RetryCallback;
@@ -67,6 +68,25 @@ class RetryConfigTest {
                     throw new MessageConversionException("bad payload");
                 })
         ).isInstanceOf(MessageConversionException.class);
+
+        assertThat(attempts[0]).isEqualTo(1);
+    }
+
+    @Test
+    void shouldNotRetryForListenerExecutionFailedException() {
+        RetryOperationsInterceptor interceptor = newConfig(7).retryInterceptor();
+        RetryOperations retryOps = extractRetryOperations(interceptor);
+
+        final int[] attempts = {0};
+        assertThatThrownBy(() ->
+                retryOps.execute((RetryCallback<Void, RuntimeException>) ctx -> {
+                    attempts[0]++;
+                    throw new ListenerExecutionFailedException(
+                            "bad payload",
+                            new MessageConversionException("bad payload")
+                    );
+                })
+        ).isInstanceOf(ListenerExecutionFailedException.class);
 
         assertThat(attempts[0]).isEqualTo(1);
     }
