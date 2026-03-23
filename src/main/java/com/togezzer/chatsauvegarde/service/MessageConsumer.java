@@ -30,6 +30,7 @@ public class MessageConsumer {
             throw e;
         } catch (ConstraintViolationException e) {
             log.error("Données invalides : {}", e.getMessage());
+            throw e;
         }
     }
 }

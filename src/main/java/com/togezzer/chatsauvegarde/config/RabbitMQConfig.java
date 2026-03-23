@@ -112,8 +112,6 @@ public class RabbitMQConfig implements RabbitListenerConfigurer {
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(converter);
         factory.setAdviceChain(retryInterceptor);
-        // Important : si on rejette (ou après épuisement du retry), on ne remet pas dans la queue.
-        // Avec x-dead-letter-exchange sur la queue, ça part en DLQ.
         factory.setDefaultRequeueRejected(false);
         return factory;
     }
