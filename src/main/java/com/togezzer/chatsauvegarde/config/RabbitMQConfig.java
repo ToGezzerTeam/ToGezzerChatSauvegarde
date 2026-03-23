@@ -1,4 +1,4 @@
-package com.togezzer.chat_sauvegarde.config;
+package com.togezzer.chatsauvegarde.config;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;

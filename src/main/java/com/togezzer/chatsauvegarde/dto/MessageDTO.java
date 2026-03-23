@@ -1,8 +1,9 @@
-package com.togezzer.chat_sauvegarde.dto;
+package com.togezzer.chatsauvegarde.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,8 +11,10 @@ import java.time.Instant;
 
 @Getter
 @Setter
-
+@Builder
 public class MessageDTO {
+
+    private String uuid;
 
     @NotBlank
     private String roomId;
