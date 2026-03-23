@@ -19,7 +19,7 @@ public class MessageConsumer {
     private static final Logger log = LoggerFactory.getLogger(MessageConsumer.class);
     private final MessageService messageService;
 
-    @RabbitListener(queues = "queue-message")
+    @RabbitListener(queues = "${rabbitmq.queues.message}", containerFactory = "rabbitListenerContainerFactory")
     public void consumeMessages(@Payload @Valid MessageDTO message) {
         log.info("Message reçu : {}", message);
         try {
