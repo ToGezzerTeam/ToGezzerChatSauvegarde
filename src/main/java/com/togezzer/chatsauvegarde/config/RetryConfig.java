@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataAccessException;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Map;
 
@@ -25,18 +27,30 @@ public class RetryConfig {
      */
     @Bean
     public RetryOperationsInterceptor retryInterceptor() {
+        // Policy: retry uniquement sur les erreurs techniques (ex: DB).
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(
+                maxAttempts,
+                Map.of(
+                        DataAccessException.class, true,
+                        MessageConversionException.class, false,
+                        ConstraintViolationException.class, false
+                ),
+                true
+        );
+
+        // Backoff: 1s, x2, max 10s
+        ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+        backOffPolicy.setInitialInterval(1000);
+        backOffPolicy.setMultiplier(2.0);
+        backOffPolicy.setMaxInterval(10000);
+
+        RetryTemplate retryTemplate = new RetryTemplate();
+        retryTemplate.setRetryPolicy(retryPolicy);
+        retryTemplate.setBackOffPolicy(backOffPolicy);
+
         return RetryInterceptorBuilder.stateless()
-                .maxAttempts(maxAttempts)
-                .backOffOptions(1000, 2.0, 10000)
+                .retryOperations(retryTemplate)
                 .recoverer(new RejectAndDontRequeueRecoverer())
-                .retryPolicy(new SimpleRetryPolicy(maxAttempts,
-                        Map.of(
-                                DataAccessException.class, true,
-                                MessageConversionException.class, false,
-                                ConstraintViolationException.class, false
-                        ),
-                        true
-                ))
                 .build();
     }
 }
