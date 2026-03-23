@@ -11,6 +11,7 @@ import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import java.lang.reflect.Field;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RetryConfigTest {
 
@@ -27,13 +28,13 @@ class RetryConfigTest {
         RetryOperations retryOps = extractRetryOperations(interceptor);
 
         final int[] attempts = {0};
-        try {
-            retryOps.execute((RetryCallback<Void, RuntimeException>) ctx -> {
-                attempts[0]++;
-                throw new DataAccessResourceFailureException("mongo down");
-            });
-        } catch (Exception ignored) {
-        }
+
+        assertThatThrownBy(() ->
+                retryOps.execute((RetryCallback<Void, RuntimeException>) ctx -> {
+                    attempts[0]++;
+                    throw new DataAccessResourceFailureException("mongo down");
+                })
+        ).isInstanceOf(DataAccessResourceFailureException.class);
 
         assertThat(attempts[0]).isEqualTo(3);
     }
@@ -44,13 +45,12 @@ class RetryConfigTest {
         RetryOperations retryOps = extractRetryOperations(interceptor);
 
         final int[] attempts = {0};
-        try {
-            retryOps.execute((RetryCallback<Void, RuntimeException>) ctx -> {
-                attempts[0]++;
-                throw new ConstraintViolationException("invalid", null);
-            });
-        } catch (Exception ignored) {
-        }
+        assertThatThrownBy(() ->
+                retryOps.execute((RetryCallback<Void, RuntimeException>) ctx -> {
+                    attempts[0]++;
+                    throw new ConstraintViolationException("invalid", null);
+                })
+        ).isInstanceOf(ConstraintViolationException.class);
 
         assertThat(attempts[0]).isEqualTo(1);
     }
@@ -61,14 +61,12 @@ class RetryConfigTest {
         RetryOperations retryOps = extractRetryOperations(interceptor);
 
         final int[] attempts = {0};
-        try {
-            retryOps.execute((RetryCallback<Void, RuntimeException>) ctx -> {
-                attempts[0]++;
-                throw new MessageConversionException("bad payload");
-            });
-        } catch (Exception ignored) {
-            // attendu
-        }
+        assertThatThrownBy(() ->
+                retryOps.execute((RetryCallback<Void, RuntimeException>) ctx -> {
+                    attempts[0]++;
+                    throw new MessageConversionException("bad payload");
+                })
+        ).isInstanceOf(MessageConversionException.class);
 
         assertThat(attempts[0]).isEqualTo(1);
     }
