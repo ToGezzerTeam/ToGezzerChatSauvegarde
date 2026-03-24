@@ -8,9 +8,8 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryOperations;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
-
 import java.lang.reflect.Field;
-
+import static com.togezzer.chatsauvegarde.TestReflectionUtils.setField;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -93,7 +92,7 @@ class RetryConfigTest {
 
     private static RetryConfig newConfig(int maxAttempts) {
         RetryConfig config = new RetryConfig();
-        setField(config, maxAttempts);
+        setField(config, "maxAttempts", maxAttempts);
         return config;
     }
 
@@ -104,16 +103,6 @@ class RetryConfigTest {
             return (RetryOperations) f.get(interceptor);
         } catch (Exception e) {
             throw new IllegalStateException("Impossible d'extraire RetryOperations depuis RetryOperationsInterceptor", e);
-        }
-    }
-
-    private static void setField(Object target, Object value) {
-        try {
-            Field f = target.getClass().getDeclaredField("maxAttempts");
-            f.setAccessible(true);
-            f.set(target, value);
-        } catch (Exception e) {
-            throw new IllegalStateException("Impossible d'injecter le champ " + "maxAttempts", e);
         }
     }
 }

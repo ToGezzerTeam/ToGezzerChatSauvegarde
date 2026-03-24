@@ -5,9 +5,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-
-import java.lang.reflect.Field;
-
+import static com.togezzer.chatsauvegarde.TestReflectionUtils.setField;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RabbitMQConfigTest {
@@ -69,15 +67,5 @@ class RabbitMQConfigTest {
         setField(config, "dlqRoutingKey", "routing-message.dlq");
 
         return config;
-    }
-
-    private static void setField(Object target, String fieldName, Object value) {
-        try {
-            Field f = target.getClass().getDeclaredField(fieldName);
-            f.setAccessible(true);
-            f.set(target, value);
-        } catch (Exception e) {
-            throw new IllegalStateException("Impossible d'injecter le champ " + fieldName, e);
-        }
     }
 }

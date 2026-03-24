@@ -26,10 +26,10 @@ public class MessageConsumer {
             messageService.saveMessage(message);
             log.info("Message sauvegardé et retiré de la queue.");
         } catch (DataAccessException e) {
-            log.error("Erreur Mongo lors de la sauvegarde : {}", e.getMessage());
+            log.error("Erreur Mongo lors de la sauvegarde", e);
             throw e;
         } catch (ConstraintViolationException e) {
-            log.error("Données invalides : {}", e.getMessage());
+            log.error("Données invalides", e);
             throw e;
         }
     }
