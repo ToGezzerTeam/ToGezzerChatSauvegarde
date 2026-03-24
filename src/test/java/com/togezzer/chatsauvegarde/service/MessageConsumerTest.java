@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -88,11 +87,11 @@ public class MessageConsumerTest {
     }
 
     @Test
-    void testConstraintViolation_neRelancePasException() {
+    void testConstraintViolation_relanceException() {
         doThrow(new ConstraintViolationException("Champ obligatoire manquant", null))
                 .when(messageService).saveMessage(message);
 
-        assertDoesNotThrow(() -> consumer.consumeMessages(message));
+        assertThrows(ConstraintViolationException.class, () -> consumer.consumeMessages(message));
 
         verify(messageService).saveMessage(message);
     }
@@ -115,7 +114,7 @@ public class MessageConsumerTest {
         doThrow(new ConstraintViolationException("Champ obligatoire manquant", null))
                 .when(messageService).saveMessage(message);
 
-        consumer.consumeMessages(message);
+        assertThrows(ConstraintViolationException.class, () -> consumer.consumeMessages(message));
 
         assertThat(listAppender.list)
                 .anyMatch(log -> log.getLevel() == Level.ERROR
