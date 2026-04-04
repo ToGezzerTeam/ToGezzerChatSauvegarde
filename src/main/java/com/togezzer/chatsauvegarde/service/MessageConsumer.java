@@ -1,6 +1,7 @@
 package com.togezzer.chatsauvegarde.service;
 
 import com.togezzer.chatsauvegarde.dto.MessageDTO;
+import com.togezzer.chatsauvegarde.enums.MessageState;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +22,30 @@ public class MessageConsumer {
 
     @RabbitListener(queues = "${rabbitmq.queues.message}", containerFactory = "rabbitListenerContainerFactory")
     public void consumeMessages(@Payload @Valid MessageDTO message) {
-        log.info("Message reçu : {}", message);
+        log.info("Message received : {}", message);
         try {
-            messageService.saveMessage(message);
-            log.info("Message sauvegardé et retiré de la queue.");
+            handleMessage(message);
+            log.info("Message saved and removed from the queue");
         } catch (DataAccessException e) {
-            log.error("Erreur Mongo lors de la sauvegarde", e);
+            log.error("MongoDB error while saving the message", e);
             throw e;
         } catch (ConstraintViolationException e) {
-            log.error("Données invalides", e);
+            log.error("Invalid message data", e);
             throw e;
+        }
+    }
+
+    private void handleMessage(MessageDTO message) {
+        switch (message.getState()){
+            case MessageState.CREATED :
+                messageService.saveMessage(message);
+                break;
+            case MessageState.UPDATED :
+                messageService.updateMessage(message);
+                break;
+            case MessageState.DELETED :
+                messageService.deleteMessage(message);
+                break;
         }
     }
 }

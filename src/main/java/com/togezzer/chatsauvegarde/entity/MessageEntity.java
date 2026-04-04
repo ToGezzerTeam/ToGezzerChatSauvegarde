@@ -1,5 +1,6 @@
 package com.togezzer.chatsauvegarde.entity;
 
+import com.togezzer.chatsauvegarde.enums.MessageState;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,16 @@ public class MessageEntity {
     private String answerTo;
     private ContentEntity content;
 
+    private MessageState state;
+
     @FieldNameConstants.Include
     private Instant createdAt;
+
+    @FieldNameConstants.Include
+    private Instant updatedAt;
+
+    @FieldNameConstants.Include
+    private Instant deletedAt;
+
+    private String deletedBy;
 }
