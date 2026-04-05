@@ -78,4 +78,9 @@ public class MessageService {
                 messageEntities.hasNext()
         );
     }
+
+    public MessageDTO getMessageByUuidAndRoomId(String roomId, String messageUuid) {
+        MessageEntity messageEntity = getMessageOrThrow(messageUuid, roomId);
+        return messageMapper.toDto(messageEntity);
+    }
 }

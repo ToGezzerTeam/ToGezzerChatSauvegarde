@@ -257,6 +257,40 @@ public class MessageServiceTest {
         );
     }
 
+    @Test
+    void getMessageByUuid_should_find_map_and_return_dto() {
+        String roomId = "roomId";
+        String uuid = "uuid";
+
+        MessageEntity entity = MessageEntity.builder().uuid(uuid).roomId(roomId).build();
+        MessageDTO dto = MessageDTO.builder().uuid(uuid).roomId(roomId).build();
+
+        when(messageRepository.findByUuidAndRoomId(uuid, roomId)).thenReturn(Optional.of(entity));
+        when(messageMapper.toDto(entity)).thenReturn(dto);
+
+        MessageDTO result = messageService.getMessageByUuidAndRoomId(roomId, uuid);
+
+        Assertions.assertEquals(dto, result);
+        verify(messageRepository, times(1)).findByUuidAndRoomId(uuid, roomId);
+        verify(messageMapper, times(1)).toDto(entity);
+        verifyNoMoreInteractions(messageRepository, messageMapper);
+    }
+
+    @Test
+    void getMessageByUuid_should_throw_when_not_found() {
+        String roomId = "roomId";
+        String uuid = "missingUuid";
+
+        when(messageRepository.findByUuidAndRoomId(uuid, roomId)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(MessageUuidNotFoundException.class, () -> messageService.getMessageByUuidAndRoomId(roomId, uuid));
+
+        verify(messageRepository, times(1)).findByUuidAndRoomId(uuid, roomId);
+        verify(messageMapper, never()).toDto(any());
+        verifyNoMoreInteractions(messageRepository, messageMapper);
+    }
+
+
     private MessageEntity createMessageEntity(String uuid,String roomId, ContentType type, String contentValue,
                                                       Instant createdAt, String authorId, String answerTo) {
         ContentEntity contentEntity = ContentEntity.builder()
