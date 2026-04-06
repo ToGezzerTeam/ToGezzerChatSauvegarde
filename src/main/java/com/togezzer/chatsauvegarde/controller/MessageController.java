@@ -19,15 +19,15 @@ public class MessageController {
     private final MessageService messageService;
 
     @GetMapping("/{roomId}")
-    public MessagesPageResponseDto getMessages(@PathVariable @NotBlank String roomId,
+    public MessagesPageResponseDto getMessages(@PathVariable String roomId,
                                                @RequestParam(required = false) String messageUuid,
                                                @RequestParam(defaultValue = "100") @Min(1) int pageSize){
         return messageService.getMessages(roomId,messageUuid,pageSize);
     }
 
     @GetMapping("/{roomId}/{messageUuid}")
-    public MessageDTO getMessageByUuidAndRoomUuid(@PathVariable @NotBlank String roomId,
-                                                  @PathVariable @NotBlank String messageUuid){
+    public MessageDTO getMessageByUuidAndRoomUuid(@PathVariable String roomId,
+                                                  @PathVariable String messageUuid){
         return messageService.getMessageByUuidAndRoomId(roomId,messageUuid);
     }
 }
