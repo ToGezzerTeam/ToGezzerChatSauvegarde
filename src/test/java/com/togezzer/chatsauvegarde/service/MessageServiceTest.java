@@ -60,6 +60,82 @@ public class MessageServiceTest {
     }
 
     @Test
+    void updateMessage_should_find_update_and_save() {
+        MessageDTO dto = MessageDTO.builder()
+                .uuid("uuid")
+                .roomId("roomId")
+                .build();
+
+        MessageEntity existing = MessageEntity.builder().uuid("uuid").roomId("roomId").build();
+
+        when(messageRepository.findByUuidAndRoomId(dto.getUuid(), dto.getRoomId()))
+                .thenReturn(Optional.of(existing));
+
+        messageService.updateMessage(dto);
+
+        verify(messageRepository, times(1)).findByUuidAndRoomId(dto.getUuid(), dto.getRoomId());
+        verify(messageMapper, times(1)).updateEntityFromDto(dto, existing);
+        verify(messageRepository, times(1)).save(existing);
+        verifyNoMoreInteractions(messageRepository, messageMapper);
+    }
+
+    @Test
+    void updateMessage_should_throw_when_not_found() {
+        MessageDTO dto = MessageDTO.builder()
+                .uuid("missingUuid")
+                .roomId("roomId")
+                .build();
+
+        when(messageRepository.findByUuidAndRoomId(dto.getUuid(), dto.getRoomId()))
+                .thenReturn(Optional.empty());
+
+        Assertions.assertThrows(MessageUuidNotFoundException.class, () -> messageService.updateMessage(dto));
+
+        verify(messageRepository, times(1)).findByUuidAndRoomId(dto.getUuid(), dto.getRoomId());
+        verify(messageRepository, never()).save(any());
+        verify(messageMapper, never()).updateEntityFromDto(any(), any());
+    }
+
+
+    @Test
+    void deleteMessage_should_find_update_and_save() {
+        MessageDTO dto = MessageDTO.builder()
+                .uuid("uuid")
+                .roomId("roomId")
+                .build();
+
+        MessageEntity existing = MessageEntity.builder().uuid("uuid").roomId("roomId").build();
+
+        when(messageRepository.findByUuidAndRoomId(dto.getUuid(), dto.getRoomId()))
+                .thenReturn(Optional.of(existing));
+
+        messageService.deleteMessage(dto);
+
+        verify(messageRepository, times(1)).findByUuidAndRoomId(dto.getUuid(), dto.getRoomId());
+        verify(messageMapper, times(1)).updateEntityFromDto(dto, existing);
+        verify(messageRepository, times(1)).save(existing);
+        verifyNoMoreInteractions(messageRepository, messageMapper);
+    }
+
+
+    @Test
+    void deleteMessage_should_throw_when_not_found() {
+        MessageDTO dto = MessageDTO.builder()
+                .uuid("missingUuid")
+                .roomId("roomId")
+                .build();
+
+        when(messageRepository.findByUuidAndRoomId(dto.getUuid(), dto.getRoomId()))
+                .thenReturn(Optional.empty());
+
+        Assertions.assertThrows(MessageUuidNotFoundException.class, () -> messageService.deleteMessage(dto));
+
+        verify(messageRepository, times(1)).findByUuidAndRoomId(dto.getUuid(), dto.getRoomId());
+        verify(messageRepository, never()).save(any());
+        verify(messageMapper, never()).updateEntityFromDto(any(), any());
+    }
+
+    @Test
     void getMessages_should_throw_MessageUuidNotFoundException_when_messageUuid_not_in_roomId(){
         String roomId = "roomId";
         String messageUuid = "messageUuid";
@@ -77,14 +153,14 @@ public class MessageServiceTest {
 
         Pageable expectedPageable = PageRequest.of(0, pageSize, Sort.by(MessageEntity.Fields.createdAt).descending());
         Slice<MessageEntity> messageSlice = new SliceImpl<>(List.of(), expectedPageable, false);
-        when(messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, expectedPageable))
+        when(messageRepository.findByRoomIdAndDeletedAtIsNullOrderByCreatedAtDesc(roomId, expectedPageable))
                 .thenReturn(messageSlice);
 
 
         messageService.getMessages(roomId, messageUuid, pageSize);
 
 
-        verify(messageRepository).findByRoomIdOrderByCreatedAtDesc(roomId, expectedPageable);
+        verify(messageRepository).findByRoomIdAndDeletedAtIsNullOrderByCreatedAtDesc(roomId, expectedPageable);
     }
 
     @Test
@@ -130,7 +206,7 @@ public class MessageServiceTest {
 
         Pageable expectedPageable = PageRequest.of(0, pageSize, Sort.by(MessageEntity.Fields.createdAt).descending());
         Slice<MessageEntity> messageSlice = new SliceImpl<>(List.of(messageEntity1,messageEntity2), expectedPageable, false);
-        when(messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, expectedPageable))
+        when(messageRepository.findByRoomIdAndDeletedAtIsNullOrderByCreatedAtDesc(roomId, expectedPageable))
                 .thenReturn(messageSlice);
 
         when(messageMapper.toDto(messageEntity1)).thenReturn(messageDTO1);
@@ -165,7 +241,7 @@ public class MessageServiceTest {
 
         Pageable expectedPageable = PageRequest.of(0, pageSize, Sort.by(MessageEntity.Fields.createdAt).descending());
         Slice<MessageEntity> messageSlice = new SliceImpl<>(List.of(messageEntity1,messageEntity2), expectedPageable, true);
-        when(messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, expectedPageable))
+        when(messageRepository.findByRoomIdAndDeletedAtIsNullOrderByCreatedAtDesc(roomId, expectedPageable))
                 .thenReturn(messageSlice);
 
         when(messageMapper.toDto(messageEntity1)).thenReturn(messageDTO1);
@@ -180,6 +256,40 @@ public class MessageServiceTest {
                 () -> Assertions.assertTrue(messagesPageResponseDto.hasMore())
         );
     }
+
+    @Test
+    void getMessageByUuid_should_find_map_and_return_dto() {
+        String roomId = "roomId";
+        String uuid = "uuid";
+
+        MessageEntity entity = MessageEntity.builder().uuid(uuid).roomId(roomId).build();
+        MessageDTO dto = MessageDTO.builder().uuid(uuid).roomId(roomId).build();
+
+        when(messageRepository.findByUuidAndRoomId(uuid, roomId)).thenReturn(Optional.of(entity));
+        when(messageMapper.toDto(entity)).thenReturn(dto);
+
+        MessageDTO result = messageService.getMessageByUuidAndRoomId(roomId, uuid);
+
+        Assertions.assertEquals(dto, result);
+        verify(messageRepository, times(1)).findByUuidAndRoomId(uuid, roomId);
+        verify(messageMapper, times(1)).toDto(entity);
+        verifyNoMoreInteractions(messageRepository, messageMapper);
+    }
+
+    @Test
+    void getMessageByUuid_should_throw_when_not_found() {
+        String roomId = "roomId";
+        String uuid = "missingUuid";
+
+        when(messageRepository.findByUuidAndRoomId(uuid, roomId)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(MessageUuidNotFoundException.class, () -> messageService.getMessageByUuidAndRoomId(roomId, uuid));
+
+        verify(messageRepository, times(1)).findByUuidAndRoomId(uuid, roomId);
+        verify(messageMapper, never()).toDto(any());
+        verifyNoMoreInteractions(messageRepository, messageMapper);
+    }
+
 
     private MessageEntity createMessageEntity(String uuid,String roomId, ContentType type, String contentValue,
                                                       Instant createdAt, String authorId, String answerTo) {

@@ -1,5 +1,6 @@
 package com.togezzer.chatsauvegarde.controller;
 
+import com.togezzer.chatsauvegarde.dto.MessageDTO;
 import com.togezzer.chatsauvegarde.dto.MessagesPageResponseDto;
 import com.togezzer.chatsauvegarde.service.MessageService;
 import jakarta.validation.constraints.Min;
@@ -22,5 +23,11 @@ public class MessageController {
                                                @RequestParam(required = false) String messageUuid,
                                                @RequestParam(defaultValue = "100") @Min(1) int pageSize){
         return messageService.getMessages(roomId,messageUuid,pageSize);
+    }
+
+    @GetMapping("/{roomId}/{messageUuid}")
+    public MessageDTO getMessageByUuidAndRoomUuid(@PathVariable @NotBlank String roomId,
+                                                  @PathVariable @NotBlank String messageUuid){
+        return messageService.getMessageByUuidAndRoomId(roomId,messageUuid);
     }
 }

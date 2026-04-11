@@ -30,6 +30,25 @@ public class MessageService {
         messageRepository.save(messageEntity);
     }
 
+    public void updateMessage(MessageDTO messageDTO) {
+        upsertFromDto(messageDTO);
+    }
+
+    public void deleteMessage(MessageDTO messageDTO) {
+        upsertFromDto(messageDTO);
+    }
+
+    private void upsertFromDto(MessageDTO messageDTO) {
+        MessageEntity messageEntity = getMessageOrThrow(messageDTO.getUuid(), messageDTO.getRoomId());
+        messageMapper.updateEntityFromDto(messageDTO, messageEntity);
+        messageRepository.save(messageEntity);
+    }
+
+    private MessageEntity getMessageOrThrow(String uuid, String roomId) {
+        return messageRepository.findByUuidAndRoomId(uuid, roomId)
+                .orElseThrow(() -> new MessageUuidNotFoundException(uuid, roomId));
+    }
+
     public MessagesPageResponseDto getMessages(String roomId, String messageUuid, int pageSize){
         log.debug("Fetching messages for room: {}, messageUuid: {}, pageSize: {}", roomId, messageUuid != null ? messageUuid : "initial load", pageSize);
 
@@ -43,7 +62,7 @@ public class MessageService {
 
             messageEntities = messageRepository.findMessagesBeforeUuid(roomId,referenceMessage.getCreatedAt(),messageUuid, pageable);
         }else{
-            messageEntities = messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable);
+            messageEntities = messageRepository.findByRoomIdAndDeletedAtIsNullOrderByCreatedAtDesc(roomId, pageable);
         }
 
         log.debug("Found {} messages in room {}", messageEntities.getContent().size(), roomId);
@@ -58,5 +77,10 @@ public class MessageService {
                 messageDTOS,
                 messageEntities.hasNext()
         );
+    }
+
+    public MessageDTO getMessageByUuidAndRoomId(String roomId, String messageUuid) {
+        MessageEntity messageEntity = getMessageOrThrow(messageUuid, roomId);
+        return messageMapper.toDto(messageEntity);
     }
 }

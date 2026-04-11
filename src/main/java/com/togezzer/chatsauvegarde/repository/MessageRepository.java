@@ -13,14 +13,18 @@ import java.util.Optional;
 @Repository
 public interface MessageRepository extends MongoRepository<MessageEntity, String> {
 
-    Slice<MessageEntity> findByRoomIdOrderByCreatedAtDesc(String roomId, Pageable pageable);
+    Slice<MessageEntity> findByRoomIdAndDeletedAtIsNullOrderByCreatedAtDesc(String roomId, Pageable pageable);
 
-    @Query("{ 'roomId': ?0, $or: [ " +
+    @Query("{ 'roomId': ?0,'deletedAt': null, $or: [ " +
             "  { 'createdAt': { $lt: ?1 } }, " +
             "  { 'createdAt': ?1, 'uuid': { $lt: ?2 } } " +
             "] }")
     Slice<MessageEntity> findMessagesBeforeUuid(String roomId, Instant createdAt, String uuid, Pageable pageable);
 
-    @Query(value = "{ 'uuid': ?0, 'roomId': ?1 }", fields = "{ 'createdAt': 1 }")
+    @Query(value = "{ 'uuid': ?0, 'roomId': ?1, 'deletedAt': null }", fields = "{ 'createdAt': 1 }")
     Optional<MessageEntity> findCreatedAtByUuidAndRoomId(String uuid,String roomId);
+
+    Optional<MessageEntity> findByUuidAndRoomId(String uuid, String roomId);
+
+    long deleteByDeletedAtBefore(Instant threshold);
 }

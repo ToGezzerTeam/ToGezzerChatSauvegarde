@@ -234,5 +234,61 @@ public class MessageControllerTest {
 
         verify(messageService).getMessages(roomId, "", 100);
     }
-}
 
+    @Test
+    void shouldReturnMessageByUuidAndRoomId() throws Exception {
+        String roomId = "room123";
+        String messageUuid = "msg-uuid-456";
+
+        MessageDTO dto = MessageDTO.builder()
+                .roomId(roomId)
+                .uuid(messageUuid)
+                .build();
+
+        when(messageService.getMessageByUuidAndRoomId(roomId, messageUuid)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/messages/{roomId}/{messageUuid}", roomId, messageUuid))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"));
+
+        verify(messageService).getMessageByUuidAndRoomId(roomId, messageUuid);
+        verifyNoMoreInteractions(messageService);
+    }
+
+    @Test
+    void shouldReturn404WhenMessageByUuidAndRoomIdNotFound() throws Exception {
+        String roomId = "room123";
+        String messageUuid = "non-existent-uuid";
+
+        when(messageService.getMessageByUuidAndRoomId(roomId, messageUuid))
+                .thenThrow(new MessageUuidNotFoundException(messageUuid, roomId));
+
+        mockMvc.perform(get("/api/messages/{roomId}/{messageUuid}", roomId, messageUuid))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value(ErrorCode.MESSAGE_NOT_FOUND.getMessage()))
+                .andExpect(jsonPath("$.message").value(containsString(messageUuid)));
+
+        verify(messageService).getMessageByUuidAndRoomId(roomId, messageUuid);
+        verifyNoMoreInteractions(messageService);
+    }
+
+    @Test
+    void shouldReturn400WhenRoomIdIsBlank_onGetMessageByUuid() throws Exception {
+        mockMvc.perform(get("/api/messages/{roomId}/{messageUuid}", " ", "uuid"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(ErrorCode.VALIDATION_FAILED.getMessage()))
+                .andExpect(jsonPath("$.message").value(containsString("roomId")));
+
+        verify(messageService, never()).getMessageByUuidAndRoomId(anyString(), anyString());
+    }
+
+    @Test
+    void shouldReturn400WhenMessageUuidIsBlank_onGetMessageByUuid() throws Exception {
+        mockMvc.perform(get("/api/messages/{roomId}/{messageUuid}", "room123", " "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(ErrorCode.VALIDATION_FAILED.getMessage()))
+                .andExpect(jsonPath("$.message").value(containsString("messageUuid")));
+
+        verify(messageService, never()).getMessageByUuidAndRoomId(anyString(), anyString());
+    }
+}

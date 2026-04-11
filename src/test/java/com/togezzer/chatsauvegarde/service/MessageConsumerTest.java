@@ -7,6 +7,7 @@ import ch.qos.logback.core.read.ListAppender;
 import com.togezzer.chatsauvegarde.dto.ContentDTO;
 import com.togezzer.chatsauvegarde.dto.MessageDTO;
 import com.togezzer.chatsauvegarde.enums.ContentType;
+import com.togezzer.chatsauvegarde.enums.MessageState;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,13 +53,28 @@ public class MessageConsumerTest {
                 .content(content)
                 .authorId("uuid1")
                 .roomId("2")
+                .state(MessageState.CREATED)
                 .build();
     }
 
     @Test
-    void testMessageSauvegarde() {
+    void shouldHandleSaveMessage() {
         consumer.consumeMessages(message);
         verify(messageService).saveMessage(message);
+    }
+
+    @Test
+    void shouldHandleUpdatedMessage() {
+        message.setState(MessageState.UPDATED);
+        consumer.consumeMessages(message);
+        verify(messageService).updateMessage(message);
+    }
+
+    @Test
+    void shouldHandleDeletedMessage() {
+        message.setState(MessageState.DELETED);
+        consumer.consumeMessages(message);
+        verify(messageService).deleteMessage(message);
     }
 
     @Test
@@ -66,7 +82,7 @@ public class MessageConsumerTest {
         consumer.consumeMessages(message);
 
         assertThat(listAppender.list)
-                .anyMatch(log -> log.getMessage().contains("Message reçu"));
+                .anyMatch(log -> log.getMessage().contains("Message received"));
     }
 
     @Test
@@ -74,7 +90,7 @@ public class MessageConsumerTest {
         consumer.consumeMessages(message);
 
         assertThat(listAppender.list)
-                .anyMatch(log -> log.getMessage().contains("Message sauvegardé"));
+                .anyMatch(log -> log.getMessage().contains("Message saved"));
     }
 
     @Test
@@ -106,7 +122,7 @@ public class MessageConsumerTest {
 
         assertThat(listAppender.list)
                 .anyMatch(log -> log.getLevel() == Level.ERROR
-                        && log.getMessage().contains("Erreur Mongo lors de la sauvegarde"));
+                        && log.getMessage().contains("MongoDB error while saving the message"));
     }
 
     @Test
@@ -118,6 +134,6 @@ public class MessageConsumerTest {
 
         assertThat(listAppender.list)
                 .anyMatch(log -> log.getLevel() == Level.ERROR
-                        && log.getMessage().contains("Données invalides"));
+                        && log.getMessage().contains("Invalid message data"));
     }
 }
