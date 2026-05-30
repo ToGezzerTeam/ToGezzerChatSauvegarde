@@ -17,6 +17,6 @@ public class ContentDTO {
     @NotNull
     private ContentType type;
 
-    @NotBlank
+    @NotNull
     private String value;
 }
